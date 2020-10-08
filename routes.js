@@ -65,17 +65,19 @@ router.get('/users',  authenticateUser, (req, res) => {
     });
   });
 
+// Create a new user ~ 
+// Remember that app.use(express.json()); must be included in app.js for this to work!
 router.post('/users', async(req, res) => {
     let user = req.body;
-    console.log(user)
     user.password = bcryptjs.hashSync(user.password);
     user = await User.create(req.body);
     return res.status(201).end();
 })
 
+// Returns a list of courses
 router.get('/courses', async (req, res) => {
     const courses = await Course.findAll();
-    res.json(courses);
+    res.status(200).json(courses);
   });
 
 module.exports = router;
