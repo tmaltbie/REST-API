@@ -65,6 +65,14 @@ router.get('/users',  authenticateUser, (req, res) => {
     });
   });
 
+router.post('/users', (req, res) => {
+    let user = req.body;
+    console.log(req.body)
+    // user.password = bcryptjs.hashSync(user.password);
+    // user = await User.create(req.body);
+    return res.status(201).end();
+})
+
 router.get('/courses', async (req, res) => {
     const courses = await Course.findAll();
     res.json(courses);
