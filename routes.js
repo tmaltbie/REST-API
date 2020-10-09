@@ -14,21 +14,11 @@ const authenticateUser = async(req, res, next) => {
 
     // Parse the user's credentials from the Authorization header.
     const credentials = auth(req)
-    console.log(credentials)
-
-    let debugUser = await User.findOne({ where: {
-        emailAddress: credentials.name
-    }})
-    console.log("debugUser:", debugUser.emailAddress)
-    console.log("debugUserPass:", debugUser.password)
-
-    let user = await User.findOne({ where: {
-        emailAddress: credentials.name,
-        password: credentials.pass
-    }})
+    // console.log(credentials)
 
     // If a user was successfully retrieved from the data store...
     if (credentials) {
+        const user = await User.findOne({ where: { emailAddress: credentials.name }})
         if (user) {
             const authenticated = bcryptjs
                 .compareSync(credentials.pass, user.password);
@@ -61,7 +51,7 @@ router.get('/users',  authenticateUser, (req, res) => {
 
     res.status(200).json({
         login: user.emailAddress,
-        name: user.firstName
+        fullName: `${user.firstName} ${user.lastName}`
     });
   });
 
@@ -76,7 +66,13 @@ router.post('/users', async(req, res) => {
 
 // Returns a list of courses
 router.get('/courses', async (req, res) => {
-    const courses = await Course.findAll();
+    // const Users = await User.findAll()
+    const courses = await Course.findAll({
+        include: [{ // `include` takes an ARRAY
+            model: User,      
+            attributes: ['firstName', 'lastName', 'emailAddress'],
+        }]
+    });
     res.status(200).json(courses);
   });
 
