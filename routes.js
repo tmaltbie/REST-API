@@ -71,14 +71,14 @@ router.get('/users',  authenticateUser, (req, res) => {
 // Create a new user ~ 
 // Remember that app.use(express.json()); must be included in app.js for this to work!
 router.post('/users', asyncHandler(async(req, res) => {
-    let user = req.body;
+    let user // = req.body;
     user.password = bcryptjs.hashSync(user.password);
     user = await User.create(req.body);
     return res.status(201).end();
 }));
 
 // Returns a list of courses
-router.get('/courses', asyncHandler( async(req, res) => {
+router.get('/courses', asyncHandler( async(req, res, next) => {
     // const Users = await User.findAll()
     const courses = await Course.findAll({
         include: [{ // `include` takes an ARRAY
@@ -90,7 +90,7 @@ router.get('/courses', asyncHandler( async(req, res) => {
   }));
 
 // Returns the courses (w/owner) for the provided course ID
-router.get('/courses/:id', asyncHandler(async (req, res) => {
+router.get('/courses/:id', asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(
         req.params.id,
         {
@@ -108,5 +108,23 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
         next(error)
     }
 }));
+
+router.post('/courses', asyncHandler(async (req, res, next) => {
+    let course;
+    try {
+        let course = await Course.create(req.body);
+        console.log("success, new course")
+        return res.status(201).end();
+    } catch (error) {
+        if (error.name === 'SequelizeValidationError') {
+            course = await Book.build(req.body)
+            res.status(400).json(error)
+        } else {
+            // print the error details
+            console.log(error, req.body)
+        }
+    }
+}))
+
 
 module.exports = router;
