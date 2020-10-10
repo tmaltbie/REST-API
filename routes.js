@@ -71,7 +71,7 @@ router.get('/users',  authenticateUser, (req, res) => {
 // Create a new user ~ 
 // Remember that app.use(express.json()); must be included in app.js for this to work!
 router.post('/users', asyncHandler(async(req, res) => {
-    let user // = req.body;
+    let user = req.body;
     user.password = bcryptjs.hashSync(user.password);
     user = await User.create(req.body);
     return res.status(201).end();
