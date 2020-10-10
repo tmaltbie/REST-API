@@ -83,7 +83,7 @@ router.get('/courses', asyncHandler( async(req, res, next) => {
     const courses = await Course.findAll({
         include: [{ // `include` takes an ARRAY
             model: User,
-            as: 'ownerUserId',
+            // as: 'userId',
             attributes: ['firstName', 'lastName', 'emailAddress'],
         }]
     });
@@ -97,7 +97,7 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
         {
             include: [{
                 model: User,
-                as: 'ownerUserId',
+                // as: 'userId',
                 attributes: ['firstName', 'lastName', 'emailAddress']
             }]
         }
@@ -111,6 +111,7 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
     }
 }));
 
+// Creates a course, sets the Location header to the URI for the course, and returns no content
 router.post('/courses', asyncHandler(async (req, res, next) => {
     let course;
     try {
@@ -125,6 +126,19 @@ router.post('/courses', asyncHandler(async (req, res, next) => {
             // print the error details
             console.log(error, req.body)
         }
+    }
+}))
+
+// PUT /api/courses/:id 204 - Updates a course and returns no content
+router.put('/courses/:id', asyncHandler(async (req, res, next) => {
+    let course;
+    course = await Course.findByPk(req.params.id);
+    if (course) {
+        return res.status(204).end()
+    } else {
+        const error = new Error('Uh-oh! That course doesn\'t exist !' )
+        error.status = 404
+        next(error)
     }
 }))
 

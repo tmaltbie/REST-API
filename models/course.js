@@ -20,10 +20,18 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: true,
         },
+        userId: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            validate: {
+              notNull: true,
+              notEmpty: true
+            },
+        },
     }, { sequelize });
   
     Course.associate = (models) => {
-        Course.belongsTo(models.User, { foreignKey: 'ownerUserId '});
+        Course.belongsTo(models.User, { foreignKey: 'userId '});
     };
 
     return Course;
