@@ -20,14 +20,6 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: true,
         },
-        userId: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            validate: {
-              notNull: true,
-              notEmpty: true
-            },
-        },
     }, { sequelize });
   
     Course.associate = (models) => {
