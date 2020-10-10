@@ -1,6 +1,7 @@
 'use strict';
 
 const Sequelize = require('sequelize');
+
 module.exports = sequelize => {
     class Course extends Sequelize.Model {}
     Course.init({
@@ -22,7 +23,7 @@ module.exports = sequelize => {
     }, { sequelize });
   
     Course.associate = (models) => {
-        Course.belongsTo(models.User)
+        Course.belongsTo(models.User, { foreignKey: 'ownerUserId '});
     };
 
     return Course;

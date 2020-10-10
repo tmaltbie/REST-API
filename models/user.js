@@ -1,6 +1,7 @@
 'use strict';
 
 const Sequelize = require('sequelize');
+
 module.exports = sequelize => {
     class User extends Sequelize.Model {};
     User.init({
@@ -49,8 +50,8 @@ module.exports = sequelize => {
         },
     }, { sequelize });
 
-    User.associate = models => {
-        User.hasMany(models.Course)
+    User.associate = (models) => {
+        User.hasMany(models.Course, { foreignKey: 'ownerUserId '})
     }
 
     return User;
