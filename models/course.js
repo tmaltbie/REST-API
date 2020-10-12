@@ -10,8 +10,24 @@ module.exports = sequelize => {
             primaryKey: true,
             autoIncrement: true
         },
-        title: Sequelize.STRING,
-        description: Sequelize.TEXT,
+        title: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: {
+                    msg: 'Please enter a course title'
+                },
+            },
+        },
+        description: {
+            type: Sequelize.TEXT,
+            allowNull: false,
+            validate: {
+                notEmpty: {
+                    msg: 'Please add a description for the course'
+                }
+            }
+        },
         estimatedTime: {
             type: Sequelize.STRING,
             allowNull: true,

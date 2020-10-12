@@ -14,7 +14,7 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: false,
             validate: {
-                notNull: {
+                notEmpty: {
                     msg: 'Please provide a first name'
                 },
             },
@@ -23,7 +23,7 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: false,
             validate: {
-                notNull: {
+                notEmpty: {
                     msg: 'Please provide a last name'
                 }
             }
@@ -32,7 +32,7 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: false,
             validate: {
-                notNull: {
+                notEmpty: {
                     msg: 'Please provide a valid email address'
                 },
             },
@@ -42,9 +42,12 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: false,
             validate: {
-                notNull: {
+                len: {
                     args: [8, 20],
-                    msg: 'You must provide a valid password between 8 and 20 characters'
+                    msg: 'Password must be between 8 and 20 characters'
+                },
+                notEmpty: {
+                    msg: 'Please provide a password'
                 }
             }
         },
