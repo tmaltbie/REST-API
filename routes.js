@@ -8,6 +8,10 @@ const auth = require('basic-auth');
 // Construct a router instance.
 const router = express.Router();
 
+const itemRouter = express.Router({mergeParams: true});
+router.use('/:userId/items', itemRouter);
+
+
 /* Handler function wrap for necessary routes. */
 /* middleware for async abstraction: https://teamtreehouse.com/library/create-entries */
 function asyncHandler(cb){
@@ -63,20 +67,28 @@ router.get('/users',  authenticateUser, (req, res) => {
 
     res.status(200).json({
         login: user.emailAddress,
-        fullName: `${user.firstName} ${user.lastName}`
+        fullName: `${user.firstName} ${user.lastName}`,
+        id: user.id
     });
   });
 
 // Create a new user ~ 
 // Remember that app.use(express.json()); must be included in app.js for this to work!
 router.post('/users', asyncHandler(async(req, res) => {
-    let user = req.body;
-    user.password = bcryptjs.hashSync(user.password);
+    let user;
     try {
+        user = req.body;
+        user.password = bcryptjs.hashSync(user.password);
         user = await User.create(req.body);
         return res.status(201).end();
     } catch (error) {
-
+        if (error.name === 'SequelizeValidationError') {
+            user = await User.build(req.body);
+            res.status(400).json(error.message)
+        } else {
+            throw error
+            // return res.status(404).json({message: "Please make a password"}); // error caught in the asyncHandler's catch block 
+        }
     }
     
 }));
@@ -100,10 +112,11 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
         {
             include: [{
                 model: User,
-                attributes: ['firstName', 'lastName', 'emailAddress']
+                attributes: ['firstName', 'lastName', 'emailAddress', 'id']
             }]
         }
     )
+    console.log(course)
     if (course) {
         res.status(200).json(course)
     } else {
@@ -133,26 +146,30 @@ router.post('/courses', asyncHandler(async (req, res, next) => {
 }))
 
 // PUT /api/courses/:id 204 - Updates a course and returns no content
-router.put('/courses/:id', asyncHandler(async (req, res, next) => {
-    let course = await Course.findByPk(req.params.id);
-    try {
-        // if (course) {
-            course.update(req.body)
-            return res.status(204).end();
-        // } else {
-        //     const error = new Error('Uh-oh! That course doesn\'t exist !' )
-        //     error.status = 404
-        //     next(error)
-        // }
-    } catch (error) {
-        if (error === 'SequelizeValidationError') {
-            course = await Course.build(req.body)
-            res.status(400).json(error)
-        } else {
-            console.log(error)
-            // throw error
-        }
-    }
+router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
+    let course = await Course.findByPk(req.params.id)
+    let user = req.currentUser
+    console.log(user)
+    console.log(JSON.stringify(course, null, 2));
+    console.log(course.userId)
+    // try {
+    //     if (course) {
+    //         course.update(req.body)
+    //         return res.status(204).end();
+    //     } else {
+    //         const error = new Error('Uh-oh! That course doesn\'t exist !' )
+    //         error.status = 404
+    //         next(error)
+    //     }
+    // } catch (error) {
+    //     if (error === 'SequelizeValidationError') {
+    //         course = await Course.build(req.body)
+    //         res.status(400).json(error.message)
+    //     } else {
+    //         console.log(error)
+    //         // throw error
+    //     }
+    // }
 }));
 
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content

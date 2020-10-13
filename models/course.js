@@ -23,7 +23,12 @@ module.exports = sequelize => {
             type: Sequelize.TEXT,
             allowNull: false,
             validate: {
+                notNull: {
+                    args: true,
+                    msg: 'Please add a description for the course'
+                },
                 notEmpty: {
+                    args: true,
                     msg: 'Please add a description for the course'
                 }
             }
