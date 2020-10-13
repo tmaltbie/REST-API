@@ -1,17 +1,17 @@
 {
   "users": [
     {
-        "firstName": "Marie",
-        "lastName": "Mancini",
-        "emailAddress": "marie@mancini.com",
-        "password": "manciniXIV"
-    },
-    {
-        "firstName": "Amenhotep",
-        "lastName": "Tiye",
-        "emailAddress": "amenhotep@tiye.com",
-        "password": "anubis666"
-    }
+        "firstName": "Joe",
+        "lastName": "Smith",
+        "emailAddress": "joe@smith.com",
+        "password": "joepassword"
+      },
+      {
+        "firstName": "Sally",
+        "lastName": "Jones",
+        "emailAddress": "sally@jones.com",
+        "password": "sallypassword"
+      }
   ],
   "courses": [
     {

@@ -146,30 +146,30 @@ router.post('/courses', asyncHandler(async (req, res, next) => {
 }))
 
 // PUT /api/courses/:id 204 - Updates a course and returns no content
-router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
+router.put('/courses/:id', asyncHandler(async (req, res, next) => {
     let course = await Course.findByPk(req.params.id)
-    let user = req.currentUser
-    console.log(user)
-    console.log(JSON.stringify(course, null, 2));
-    console.log(course.userId)
-    // try {
-    //     if (course) {
-    //         course.update(req.body)
-    //         return res.status(204).end();
-    //     } else {
-    //         const error = new Error('Uh-oh! That course doesn\'t exist !' )
-    //         error.status = 404
-    //         next(error)
-    //     }
-    // } catch (error) {
-    //     if (error === 'SequelizeValidationError') {
-    //         course = await Course.build(req.body)
-    //         res.status(400).json(error.message)
-    //     } else {
-    //         console.log(error)
-    //         // throw error
-    //     }
-    // }
+    // let user = req.currentUser
+    // console.log(user)
+    // console.log(JSON.stringify(course, null, 2));
+    // console.log(course.userId)
+    try {
+        if (course) {
+            course.update(req.body)
+            return res.status(204).end();
+        } else {
+            const error = new Error('Uh-oh! That course doesn\'t exist !' )
+            error.status = 404
+            next(error)
+        }
+    } catch (error) {
+        if (error === 'SequelizeValidationError') {
+            course = await Course.build(req.body)
+            res.status(400).json(error.message)
+        } else {
+            console.log(error)
+            // throw error
+        }
+    }
 }));
 
 // DELETE /api/courses/:id 204 - Deletes a course and returns no content
