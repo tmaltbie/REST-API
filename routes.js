@@ -66,7 +66,8 @@ router.get('/users', authenticateUser, (req, res, next) => {
     const user = req.currentUser;
     res.status(200).json({
         login: user.emailAddress,
-        fullName: `${user.firstName} ${user.lastName}`,
+        forename: user.firstName,
+        surname: user.lastName,
         id: user.id
     });
   });
@@ -78,6 +79,7 @@ router.post('/users', asyncHandler(async(req, res) => {
         user = req.body;
         user.password = bcryptjs.hashSync(user.password);
         user = await User.create(req.body);
+        res.location('/')
         return res.status(201).end();
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
@@ -93,14 +95,13 @@ router.post('/users', asyncHandler(async(req, res) => {
 
 // Returns a list of courses
 router.get('/courses', asyncHandler( async(req, res, next) => {
-    const courses = await Course.findAll(
-        courseExcludedContent, 
-        {
-            include: [{ // `include` takes an ARRAY
-                model: User,
-                attributes: ['firstName', 'lastName', 'emailAddress'],
-            }]
-        });
+    const courses = await Course.findAll({
+        attributes: { exclude: [ 'createdAt', 'updatedAt'] },
+        include: [{ // `include` takes an ARRAY
+            model: User,
+            attributes: ['firstName', 'lastName', 'emailAddress']
+        }]
+    });
     res.status(200).json(courses);
 }));
 
@@ -128,7 +129,6 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 router.post('/courses', asyncHandler(async (req, res, next) => {
     try {
         const course = await Course.create(req.body);
-        console.log(course.id)
         res.location(`/courses/${course.id}`)
         return res.status(201).end();
     } catch (error) {
@@ -136,13 +136,13 @@ router.post('/courses', asyncHandler(async (req, res, next) => {
             course = await Course.build(req.body)
             res.status(400).json(error)
         } else {
-            throw error
+            res.status(403).json(error)
         }
     }
 }))
 
 // PUT Updates a course and returns no content
-router.put('/courses/:id', asyncHandler(async (req, res, next) => {
+router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id)
     try {
         if(course){
