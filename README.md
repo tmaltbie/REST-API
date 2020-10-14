@@ -12,9 +12,9 @@ First, install dependencies using `npm`.
 ```
 npm install
 ```
+```
 npm run seed
 ```
-
 ```
 npm start
 ```
