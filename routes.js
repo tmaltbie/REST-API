@@ -28,7 +28,6 @@ function asyncHandler(cb){
 // custome authenticateUser middleware
 const authenticateUser = async(req, res, next) => {
     let message = null;
-
     // Parse the user's credentials from the Authorization header.
     const credentials = auth(req)
 
@@ -39,9 +38,7 @@ const authenticateUser = async(req, res, next) => {
             const authenticated = bcryptjs
                 .compareSync(credentials.pass, user.password);
             if (authenticated) {
-                console.log(`Authentication successful for user: ${user.emailAddress}`);
                 req.currentUser = user;
-                
             } else {
                 message = `Authentication failure for user: ${user.emailAddress}`;
             }
@@ -61,10 +58,20 @@ const authenticateUser = async(req, res, next) => {
     }
 };
 
-// Returns the currently authenticated user
-router.get('/users',  authenticateUser, (req, res) => {
-    const user = req.currentUser;
+// const userGuard = (req, res, next) => {
+//     if (req.user != req.currentUser) {
+//         next(new Error('Permission Denied: incorrect user'));
+//     } else {
+//         next();
+//     }
+// }
 
+const userExcludedContent = {attributes: { exclude: [ 'password', 'createdAt', 'updatedAt'] }}
+const courseExcludedContent = {attributes: { exclude: [ 'createdAt', 'updatedAt'] }}
+
+// Returns the currently authenticated user
+router.get('/users', authenticateUser, (req, res, next) => {
+    const user = req.currentUser;
     res.status(200).json({
         login: user.emailAddress,
         fullName: `${user.firstName} ${user.lastName}`,
@@ -72,8 +79,7 @@ router.get('/users',  authenticateUser, (req, res) => {
     });
   });
 
-// Create a new user ~ 
-// Remember that app.use(express.json()); must be included in app.js for this to work!
+// Create a new user ~ Remember that app.use(express.json());
 router.post('/users', asyncHandler(async(req, res) => {
     let user;
     try {
@@ -95,28 +101,28 @@ router.post('/users', asyncHandler(async(req, res) => {
 
 // Returns a list of courses
 router.get('/courses', asyncHandler( async(req, res, next) => {
-    // const Users = await User.findAll()
-    const courses = await Course.findAll({
-        include: [{ // `include` takes an ARRAY
-            model: User,
-            attributes: ['firstName', 'lastName', 'emailAddress'],
-        }]
-    });
+    const courses = await Course.findAll(
+        courseExcludedContent, 
+        {
+            include: [{ // `include` takes an ARRAY
+                model: User,
+                attributes: ['firstName', 'lastName', 'emailAddress'],
+            }]
+        });
     res.status(200).json(courses);
-  }));
+}));
 
 // Returns the courses (w/owner) for the provided course ID
 router.get('/courses/:id', asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(
         req.params.id,
+        courseExcludedContent,
         {
             include: [{
                 model: User,
                 attributes: ['firstName', 'lastName', 'emailAddress', 'id']
             }]
-        }
-    )
-    console.log(course)
+        })
     if (course) {
         res.status(200).json(course)
     } else {
@@ -126,36 +132,34 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
     }
 }));
 
-// Creates a course, sets the Location header to the URI for the course, and returns no content
+// Creates a course, sets the Location header to the URI for the course
 router.post('/courses', asyncHandler(async (req, res, next) => {
-    let course;
     try {
-        let course = await Course.create(req.body);
-        console.log("success, new course")
+        const course = await Course.create(req.body);
+        console.log(course.id)
+        res.location(`/courses/${course.id}`)
         return res.status(201).end();
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             course = await Course.build(req.body)
             res.status(400).json(error)
         } else {
-            // print the error details
-            console.log(error, req.body)
             throw error
         }
     }
 }))
 
-// PUT /api/courses/:id 204 - Updates a course and returns no content
+// PUT Updates a course and returns no content
 router.put('/courses/:id', asyncHandler(async (req, res, next) => {
-    let course = await Course.findByPk(req.params.id)
-    // let user = req.currentUser
-    // console.log(user)
-    // console.log(JSON.stringify(course, null, 2));
-    // console.log(course.userId)
+    const course = await Course.findByPk(req.params.id)
     try {
-        if (course) {
-            course.update(req.body)
-            return res.status(204).end();
+        if(course){
+            if (course.id === req.currentUser.id) {
+                course.update(req.body)
+                return res.status(204).end();
+            } else {
+                return res.status(403).end();
+            }
         } else {
             const error = new Error('Uh-oh! That course doesn\'t exist !' )
             error.status = 404
@@ -163,27 +167,23 @@ router.put('/courses/:id', asyncHandler(async (req, res, next) => {
         }
     } catch (error) {
         if (error === 'SequelizeValidationError') {
-            course = await Course.build(req.body)
-            res.status(400).json(error.message)
+            course = await Course.build(req.body);
+            res.status(400).json(error.message);
         } else {
-            console.log(error)
-            // throw error
+            throw error;
         }
     }
 }));
 
-// DELETE /api/courses/:id 204 - Deletes a course and returns no content
-router.delete('/courses/:id', asyncHandler(async (req, res, next) => {
-    console.log(req.params.id)
-    const course = await Course.findByPk(req.params.id)
-    if (course) {
-        console.log(course)
-        await course.destroy()
+// DELETE a course and returns no content
+router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
+    const course = await Course.findByPk(req.params.id);
+    if (course.id === req.currentUser.id) {
+        await course.destroy();
         return res.status(204).end();
     } else {
-        res.status(404);
+        res.status(403).end()
     }
-}))
-
+}));
 
 module.exports = router;
