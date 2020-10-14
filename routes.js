@@ -127,8 +127,9 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 
 // Creates a course, sets the Location header to the URI for the course
 router.post('/courses', asyncHandler(async (req, res, next) => {
+    let course;
     try {
-        const course = await Course.create(req.body);
+        course = await Course.create(req.body);
         res.location(`/courses/${course.id}`)
         return res.status(201).end();
     } catch (error) {
