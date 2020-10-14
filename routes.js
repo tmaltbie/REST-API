@@ -1,6 +1,6 @@
 'use strict';
 
-const { sequelize, User, Course } = require('./models');
+const { User, Course } = require('./models');
 const express = require('express');
 const bcryptjs = require('bcryptjs');
 const auth = require('basic-auth');
@@ -58,15 +58,7 @@ const authenticateUser = async(req, res, next) => {
     }
 };
 
-// const userGuard = (req, res, next) => {
-//     if (req.user != req.currentUser) {
-//         next(new Error('Permission Denied: incorrect user'));
-//     } else {
-//         next();
-//     }
-// }
-
-const userExcludedContent = {attributes: { exclude: [ 'password', 'createdAt', 'updatedAt'] }}
+//const userExcludedContent = {attributes: { exclude: [ 'password', 'createdAt', 'updatedAt'] }}
 const courseExcludedContent = {attributes: { exclude: [ 'createdAt', 'updatedAt'] }}
 
 // Returns the currently authenticated user
