@@ -27,6 +27,7 @@ module.exports = sequelize => {
                     msg: 'Please provide a last name'
                 },
                 notEmpty: {
+                    args: true,
                     msg: 'Please provide a last name'
                 }
             }

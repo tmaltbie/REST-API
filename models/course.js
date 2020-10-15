@@ -15,6 +15,7 @@ module.exports = sequelize => {
             allowNull: false,
             validate: {
                 notEmpty: {
+                    args: true,
                     msg: 'Please enter a course title'
                 },
             },

@@ -84,9 +84,10 @@ router.post('/users', asyncHandler(async(req, res) => {
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             user = await User.build(req.body);
-            res.status(400).json(error.message)
+            res.status(400).json(error)
         } else {
-            return res.status(403).json(error.message); // error caught in the asyncHandler's catch block 
+            console.log('wrong spot on new user');
+            console.error(error) // error caught in the asyncHandler's catch block 
         }
     }
 }));
@@ -124,12 +125,16 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 }));
 
 // Creates a course, sets the Location header to the URI for the course
-router.post('/courses', asyncHandler(async (req, res, next) => {
+router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) => {
     let course;
     try {
-        course = await Course.create(req.body);
-        res.location(`/courses/${course.id}`)
-        return res.status(201).end();
+        if (course.userId === req.currentUser.id) {
+            course = await Course.create(req.body);
+            res.location(`/courses/${course.id}`)
+            return res.status(201).end();
+        } else {
+            return res.status(403).end();
+        }
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             course = await Course.build(req.body)
