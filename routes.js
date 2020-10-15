@@ -86,11 +86,9 @@ router.post('/users', asyncHandler(async(req, res) => {
             user = await User.build(req.body);
             res.status(400).json(error.message)
         } else {
-            throw error
-            // return res.status(404).json({message: "Please make a password"}); // error caught in the asyncHandler's catch block 
+            return res.status(403).json(error.message); // error caught in the asyncHandler's catch block 
         }
     }
-    
 }));
 
 // Returns a list of courses
@@ -147,7 +145,7 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
     const course = await Course.findByPk(req.params.id)
     try {
         if(course){
-            if (course.id === req.currentUser.id) {
+            if (course.userId === req.currentUser.id) {
                 course.update(req.body)
                 return res.status(204).end();
             } else {
@@ -163,7 +161,7 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
             course = await Course.build(req.body);
             res.status(400).json(error.message);
         } else {
-            throw error;
+            res.status(403).json(error.message)
         }
     }
 }));
@@ -171,11 +169,17 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
 // DELETE a course and returns no content
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id);
-    if (course.id === req.currentUser.id) {
-        await course.destroy();
-        return res.status(204).end();
+    if (course){
+        if (course.userId === req.currentUser.id) {
+            await course.destroy();
+            return res.status(204).end();
+        } else {
+            res.status(403).end()
+        }
     } else {
-        res.status(403).end()
+        const error = new Error('Uh-oh! That course doesn\'t exist !' )
+        error.status = 404
+        next(error)
     }
 }));
 
