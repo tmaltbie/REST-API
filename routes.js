@@ -74,19 +74,20 @@ router.get('/users', authenticateUser, (req, res, next) => {
 
 // Create a new user ~ Remember that app.use(express.json());
 router.post('/users', asyncHandler(async(req, res) => {
-    let user;
+    let user = null;
     try {
-        user = req.body;
-        user.password = bcryptjs.hashSync(user.password);
+        if (req.body.length > 0) {
+            user = req.body;
+            user.password = bcryptjs.hashSync(user.password);
+        }
         user = await User.create(req.body);
         res.location('/')
         return res.status(201).end();
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
-            user = await User.build(req.body);
-            res.status(400).json(error)
+            await User.build(req.body);
+            res.status(400).json(error.message)
         } else {
-            console.log('wrong spot on new user');
             console.error(error) // error caught in the asyncHandler's catch block 
         }
     }
@@ -149,24 +150,24 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id)
     try {
-        if(course){
+        // if(course){
             if (course.userId === req.currentUser.id) {
                 course.update(req.body)
                 return res.status(204).end();
             } else {
                 return res.status(403).end();
             }
-        } else {
-            const error = new Error('Uh-oh! That course doesn\'t exist !' )
-            error.status = 404
-            next(error)
-        }
+        // } else {
+        //     const error = new Error('Uh-oh! That course doesn\'t exist !' )
+        //     error.status = 404
+        //     next(error)
+        // }
     } catch (error) {
         if (error === 'SequelizeValidationError') {
             course = await Course.build(req.body);
-            res.status(400).json(error.message);
+            res.status(400).json(error);
         } else {
-            res.status(403).json(error.message)
+            res.status(403).json(error)
         }
     }
 }));
