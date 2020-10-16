@@ -128,10 +128,13 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 // Creates a course, sets the Location header to the URI for the course
 router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) => {
     console.log("current user:", req.currentUser)
-    // let course;
+    let course;
     try {
+        // if ((req.body.title == undefined) && (req.body.description == undefined)) {
+        //     return res.status(400).json({ error: 'The course must include a title and description' })
+        // }
         if (req.currentUser) {
-            const course = await Course.create(req.body);
+            course = await Course.create(req.body);
             res.location(`/courses/${course.id}`)
             return res.status(201).end();
         } else {
@@ -140,12 +143,10 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             course = await Course.build(req.body)
+            console.log(error.name)
             res.status(400).json(error)
-        // } else if (error.name === 'titleAndDesc') {
-        //     course = await Course.build(req.body)
-        //     res.status(400).json(error)
         } else {
-            console.error(error)
+            console.error(error.name)
             res.status(403).json(error)
         }
     }
@@ -154,21 +155,28 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
 // PUT Updates a course and returns no content
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id)
-    console.log(course.userId, req.currentUser.id)
     try {
-        if (course.userId === req.currentUser.id) {
-            course.update(req.body)
-            return res.status(204).end();
+        // console.log(req.body.title)
+        // console.log(req.body.description)
+        if ((req.body.title == undefined) && (req.body.description == undefined)) {
+            return res.status(400).json({ error: 'The course must include a title and description' })
+            new Error('The course must include a title and description')
+            throw Error
         } else {
-            return res.status(403).end();
+            if (course.userId === req.currentUser.id) {
+                course.update(req.body)
+                return res.status(204).end();
+            } else {
+                return res.status(403).end();
+            }
         }
     } catch (error) {
-        if (error === 'SequelizeValidationError') {
+        if (error.name === 'SequelizeValidationError') {
             course = await Course.build(req.body);
             res.status(400).json(error);
-        } else if (error.name === 'titleAndDesc') {
-            course = await Course.build(req.body)
-            res.status(400).json(error)
+        // } else if (error.name === 'titleAndDesc') {
+        //     course = await Course.build(req.body)
+        //     res.status(400).json(error)
         } else {
             console.log('there')
             res.status(403).json(error.message)
