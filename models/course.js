@@ -18,6 +18,11 @@ module.exports = sequelize => {
                     args: true,
                     msg: 'Please enter a course title'
                 },
+                customTitle: function(value) {
+                    if (value == null || value.length <= 0) {
+                        throw new Error('Please enter a course title')
+                    }
+                },
             },
         },
         description: {
@@ -28,11 +33,16 @@ module.exports = sequelize => {
                     args: true,
                     msg: 'Please add a description for the course'
                 },
-                notEmpty: {
-                    args: true,
-                    msg: 'Please add a description for the course'
-                }
-            }
+                customDesc: function(value) {
+                    if (value == null || value.length <= 0) 
+                        throw new Error('Please enter a course description')
+                    
+                },
+                // notEmpty: {
+                //     args: true,
+                //     msg: 'Please add a description for the course'
+                // }
+            },
         },
         estimatedTime: {
             type: Sequelize.STRING,
@@ -42,7 +52,15 @@ module.exports = sequelize => {
             type: Sequelize.STRING,
             allowNull: true,
         },
-    }, { sequelize });
+    }, { sequelize,
+        validate: {
+            titleAndDesc() {
+                if ((this.title === null) || (this.description === null)) {
+                    throw new Error('The course must have both a title and a description')
+                }
+            }
+        }
+    });
   
     Course.associate = (models) => {
         Course.belongsTo(models.User, { foreignKey: 'userId'});

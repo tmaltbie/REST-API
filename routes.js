@@ -127,20 +127,25 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 
 // Creates a course, sets the Location header to the URI for the course
 router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) => {
+    console.log("current user:", req.currentUser)
     let course;
     try {
-        if (course.userId === req.currentUser.id) {
-            course = await Course.create(req.body);
+        // if (course) {
+            const course = await Course.create(req.body);
             res.location(`/courses/${course.id}`)
             return res.status(201).end();
-        } else {
-            return res.status(403).end();
-        }
+        // } else {
+        //     return res.status(403).end();
+        // }
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             course = await Course.build(req.body)
             res.status(400).json(error)
+        // } else if (error.name === 'titleAndDesc') {
+        //     course = await Course.build(req.body)
+        //     res.status(400).json(error)
         } else {
+            console.error(error)
             res.status(403).json(error)
         }
     }
@@ -149,25 +154,24 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
 // PUT Updates a course and returns no content
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id)
+    console.log(course.userId, req.currentUser.id)
     try {
-        // if(course){
-            if (course.userId === req.currentUser.id) {
-                course.update(req.body)
-                return res.status(204).end();
-            } else {
-                return res.status(403).end();
-            }
-        // } else {
-        //     const error = new Error('Uh-oh! That course doesn\'t exist !' )
-        //     error.status = 404
-        //     next(error)
-        // }
+        if (course.userId === req.currentUser.id) {
+            course.update(req.body)
+            return res.status(204).end();
+        } else {
+            return res.status(403).end();
+        }
     } catch (error) {
         if (error === 'SequelizeValidationError') {
             course = await Course.build(req.body);
             res.status(400).json(error);
+        } else if (error.name === 'titleAndDesc') {
+            course = await Course.build(req.body)
+            res.status(400).json(error)
         } else {
-            res.status(403).json(error)
+            console.log('there')
+            res.status(403).json(error.message)
         }
     }
 }));
