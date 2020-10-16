@@ -128,15 +128,15 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 // Creates a course, sets the Location header to the URI for the course
 router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) => {
     console.log("current user:", req.currentUser)
-    let course;
+    // let course;
     try {
-        // if (course) {
+        if (req.currentUser) {
             const course = await Course.create(req.body);
             res.location(`/courses/${course.id}`)
             return res.status(201).end();
-        // } else {
-        //     return res.status(403).end();
-        // }
+        } else {
+            return res.status(403).end();
+        }
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             course = await Course.build(req.body)
