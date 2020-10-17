@@ -19,7 +19,6 @@ function asyncHandler(cb){
       try {
         await cb(req, res, next)
       } catch(error){
-        console.error(error)
         res.status(500).send(error)
       }
     }
@@ -88,7 +87,8 @@ router.post('/users', asyncHandler(async(req, res) => {
             await User.build(req.body);
             res.status(400).json(error.message)
         } else {
-            console.error(error) // error caught in the asyncHandler's catch block 
+            console.error(error) // error caught in the asyncHandler's catch block
+            res.json(error.message)
         }
     }
 }));
@@ -132,11 +132,12 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
         // if ((req.body.title == undefined) || (req.body.description == undefined)) {
         //     return res.status(400).json({ error: 'The course must include a title and description' })
         // }
-        if (req.currentUser.length > 0) {
+        if (req.currentUser.id != 0) {
             course = await Course.create(req.body);
             res.location(`/courses/${course.id}`)
             return res.status(201).end();
         } else {
+
             return res.status(403).end();
         }
     } catch (error) {
@@ -158,14 +159,12 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
                 course.update(req.body)
                 return res.status(204).end();
             } else {
-                return res.status(400).json({ error: 'The course must include a title and description' })
-                // new Error('The course must include a title and description')
-                // new Error.status = 400;
-                // throw Error
+                // return res.status(400).json({ error: 'The course must include a title and description' })
+                const e = new Error('The course must include a title and description');
+                return res.status(400).json(e.message)
             }
         } else {
             return res.status(403).end();
-            
         }
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
