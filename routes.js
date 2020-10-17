@@ -165,6 +165,7 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
             }
         } else {
             return res.status(403).end();
+            
         }
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
