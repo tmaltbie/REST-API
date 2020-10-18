@@ -122,7 +122,7 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
     }
 }));
 
-// Creates a course, sets the Location header to the URI for the course
+// Creates a course, sets the Location header
 router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) => {
     let course;
     try {
@@ -143,7 +143,7 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
     }
 }))
 
-// PUT Updates a course and returns no content
+// Updates a course
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id)
     try {
@@ -170,7 +170,7 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
     }
 }));
 
-// DELETE a course and returns no content
+// DELETE a course
 router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id);
     if (course){
