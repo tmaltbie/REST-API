@@ -26,22 +26,20 @@ module.exports = sequelize => {
                 notNull: {
                     msg: 'Please provide a last name'
                 },
-                notEmpty: {
-                    args: true,
-                    msg: 'Please provide a last name'
-                }
+                
             }
         },
         emailAddress: {
             type: Sequelize.STRING,
             allowNull: false,
+            unique: true,
             validate: {
                 isEmail: {
-                    args: true,
+                    // args: true,
                     msg: 'Please provide a valid email address'
                 },
             },
-            unique: true,
+    
         },
         password: {
             type: Sequelize.STRING,

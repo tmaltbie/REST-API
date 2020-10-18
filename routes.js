@@ -57,9 +57,6 @@ const authenticateUser = async(req, res, next) => {
     }
 };
 
-//const userExcludedContent = {attributes: { exclude: [ 'password', 'createdAt', 'updatedAt'] }}
-const courseExcludedContent = {attributes: { exclude: [ 'createdAt', 'updatedAt'] }}
-
 // Returns the currently authenticated user
 router.get('/users', authenticateUser, (req, res, next) => {
     const user = req.currentUser;
@@ -71,19 +68,19 @@ router.get('/users', authenticateUser, (req, res, next) => {
     });
   });
 
-// Create a new user ~ Remember that app.use(express.json());
+// Create a new user ~ Remember => app.use(express.json());
 router.post('/users', asyncHandler(async(req, res) => {
-    let user = null;
     try {
-        if (req.body.length > 0) {
-            user = req.body;
-            user.password = bcryptjs.hashSync(user.password);
-        }
-        user = await User.create(req.body);
+        const user = req.body;
+        user.password = bcryptjs.hashSync(user.password);
+        await User.create(req.body);
         res.location('/')
         return res.status(201).end();
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
+            await User.build(req.body);
+            res.status(400).json(error.message)
+        } else if (error.name === 'SequelizeUniqueConstraintError') {
             await User.build(req.body);
             res.status(400).json(error.message)
         } else {
@@ -109,8 +106,8 @@ router.get('/courses', asyncHandler( async(req, res, next) => {
 router.get('/courses/:id', asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(
         req.params.id,
-        courseExcludedContent,
         {
+            attributes: { exclude: [ 'createdAt', 'updatedAt'] },
             include: [{
                 model: User,
                 attributes: ['firstName', 'lastName', 'emailAddress', 'id']
@@ -132,12 +129,11 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
         // if ((req.body.title == undefined) || (req.body.description == undefined)) {
         //     return res.status(400).json({ error: 'The course must include a title and description' })
         // }
-        if (req.currentUser.id != 0) {
+        if (req.currentUser.id != 0) { // validate there user by check for an id #
             course = await Course.create(req.body);
             res.location(`/courses/${course.id}`)
             return res.status(201).end();
         } else {
-
             return res.status(403).end();
         }
     } catch (error) {
@@ -154,14 +150,15 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
 router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
     const course = await Course.findByPk(req.params.id)
     try {
-        if ((course) && (course.userId === req.currentUser.id)) {
-            if ((req.body.title != undefined) || (req.body.description != undefined)) {
+        if ((course) && (course.userId === req.currentUser.id)) { // check for course && that it belongs to current user
+            if ((req.body.title != undefined) || (req.body.description != undefined)) { // check title & desc aren't empty
                 course.update(req.body)
                 return res.status(204).end();
             } else {
-                // return res.status(400).json({ error: 'The course must include a title and description' })
-                const e = new Error('The course must include a title and description');
-                return res.status(400).json(e.message)
+                let e = new Error('The course must include a title and description');
+                e.status = 400
+                throw e
+                // return res.status(400).json(e.message)
             }
         } else {
             return res.status(403).end();
