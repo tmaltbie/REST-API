@@ -72,6 +72,7 @@ router.get('/users', authenticateUser, (req, res, next) => {
 router.post('/users', asyncHandler(async(req, res) => {
     try {
         const user = req.body;
+        console.log(user)
         user.password = bcryptjs.hashSync(user.password);
         await User.create(req.body);
         res.location('/')
@@ -84,8 +85,7 @@ router.post('/users', asyncHandler(async(req, res) => {
             await User.build(req.body);
             res.status(400).json(error.message)
         } else {
-            console.error(error) // error caught in the asyncHandler's catch block
-            res.json(error.message)
+            res.json(error.message) // error caught in the asyncHandler's catch block
         }
     }
 }));
@@ -126,9 +126,6 @@ router.get('/courses/:id', asyncHandler(async (req, res, next) => {
 router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) => {
     let course;
     try {
-        // if ((req.body.title == undefined) || (req.body.description == undefined)) {
-        //     return res.status(400).json({ error: 'The course must include a title and description' })
-        // }
         if (req.currentUser.id != 0) { // validate there user by check for an id #
             course = await Course.create(req.body);
             res.location(`/courses/${course.id}`)
