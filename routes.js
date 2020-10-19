@@ -82,7 +82,7 @@ router.post('/users', asyncHandler(async(req, res) => {
                 return res.status(201).end();
             } else {
                 let e = new Error('The course must include all: first & last name, email, and password');
-                e.status = 400
+                res.status(400)
                 throw e
             }
     } catch (error) {
@@ -161,9 +161,8 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
                 return res.status(204).end();
             } else {
                 let e = new Error('The course must include a title and description');
-                e.status = 400
+                res.status(400)
                 throw e
-                // return res.status(400).json(e.message)
             }
         } else {
             return res.status(403).end();
@@ -173,7 +172,8 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next)
             course = await Course.build(req.body);
             res.status(400).json(error.message);
         } else {
-            res.status(403).json(error.message)
+            console.log("hello from 403")
+            res.status(400).json(error.message)
         }
     }
 }));
