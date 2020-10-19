@@ -70,13 +70,21 @@ router.get('/users', authenticateUser, (req, res, next) => {
 
 // Create a new user ~ Remember => app.use(express.json());
 router.post('/users', asyncHandler(async(req, res) => {
+    let user;
     try {
-        const user = req.body;
-        console.log(user)
-        user.password = bcryptjs.hashSync(user.password);
-        await User.create(req.body);
-        res.location('/')
-        return res.status(201).end();
+        if ((req.body.firstName != undefined) && (req.body.lastName != undefined) 
+            && (req.body.emailAddress != undefined) && (req.body.password != undefined)) 
+            {
+                user = req.body;
+                user.password = bcryptjs.hashSync(user.password);
+                await User.create(req.body);
+                res.location('/')
+                return res.status(201).end();
+            } else {
+                let e = new Error('The course must include all: first & last name, email, and password');
+                e.status = 400
+                throw e
+            }
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             await User.build(req.body);

@@ -15,7 +15,10 @@ module.exports = sequelize => {
             allowNull: false,
             validate: {
                 notEmpty: {
-                    msg: 'Please provide a first name'
+                    msg: 'Please provide a last name'
+                },
+                notNull: {
+                    msg: 'Please provide a last name'
                 },
             },
         },
@@ -26,7 +29,9 @@ module.exports = sequelize => {
                 notNull: {
                     msg: 'Please provide a last name'
                 },
-                
+                notEmpty: {
+                    msg: 'Please provide a last name'
+                },
             }
         },
         emailAddress: {
